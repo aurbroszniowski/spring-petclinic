@@ -16,17 +16,12 @@
 
 package org.springframework.samples.petclinic;
 
-import net.sf.ehcache.config.CacheConfiguration;
-import net.sf.ehcache.config.PersistenceConfiguration;
-import net.sf.ehcache.config.PersistenceConfiguration.Strategy;
-import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.ehcache.EhCacheCacheManager;
+import org.springframework.cache.jcache.JCacheCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -36,6 +31,15 @@ import org.springframework.samples.petclinic.web.VetsAtomView;
 import org.springframework.web.servlet.view.BeanNameViewResolver;
 import org.springframework.web.servlet.view.xml.MarshallingView;
 
+import java.util.concurrent.TimeUnit;
+
+import javax.cache.CacheManager;
+import javax.cache.Caching;
+import javax.cache.configuration.MutableConfiguration;
+import javax.cache.expiry.CreatedExpiryPolicy;
+import javax.cache.expiry.Duration;
+import javax.cache.spi.CachingProvider;
+
 /**
  * PetClinic Spring Boot Application.
  *
@@ -44,6 +48,7 @@ import org.springframework.web.servlet.view.xml.MarshallingView;
 @Configuration
 @EnableAutoConfiguration
 @ComponentScan
+@EnableCaching
 public class PetClinicApplication {
 
 	/**
@@ -64,34 +69,18 @@ public class PetClinicApplication {
 		return new MarshallingView(marshaller);
 	}
 
-	/**
-	 * Caching configuration.
-	 */
-	@EnableCaching
-	static class CachingConfiguration extends CachingConfigurerSupport {
+	@Bean
+	JCacheCacheManager cacheManager() throws Exception {
+		CachingProvider provider = Caching.getCachingProvider();
+		CacheManager cacheManager = provider.getCacheManager();
 
-		@Bean(destroyMethod = "shutdown")
-		public net.sf.ehcache.CacheManager ehCacheManager() {
-			CacheConfiguration cacheConfiguration = new CacheConfiguration();
-			cacheConfiguration.name("vets")
-					.memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LRU)
-					.timeToLiveSeconds(60L).eternal(false).maxEntriesLocalHeap(100)
-					.maxElementsOnDisk(10000000)
-					.persistence(new PersistenceConfiguration().strategy(Strategy.NONE))
-					.diskExpiryThreadIntervalSeconds(1);
+		MutableConfiguration<Object, Object> configuration = new MutableConfiguration<Object, Object>();
+		configuration.setExpiryPolicyFactory(CreatedExpiryPolicy.factoryOf(new Duration(TimeUnit.SECONDS, 60)));
+		configuration.setStoreByValue(false);
 
-			net.sf.ehcache.config.Configuration config = new net.sf.ehcache.config.Configuration();
-			config.addCache(cacheConfiguration);
+		cacheManager.createCache("vets", configuration);
 
-			return net.sf.ehcache.CacheManager.newInstance(config);
-		}
-
-		@Bean
-		@Override
-		public CacheManager cacheManager() {
-			return new EhCacheCacheManager(ehCacheManager());
-		}
-
+		return new JCacheCacheManager(cacheManager);
 	}
 
 	public static void main(String[] args) throws Exception {
