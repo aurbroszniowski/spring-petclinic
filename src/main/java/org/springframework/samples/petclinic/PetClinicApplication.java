@@ -72,7 +72,10 @@ public class PetClinicApplication {
 	@Bean
 	JCacheCacheManager cacheManager() throws Exception {
 		CachingProvider provider = Caching.getCachingProvider();
-		CacheManager cacheManager = provider.getCacheManager();
+		CacheManager cacheManager = provider.getCacheManager(
+				getClass().getResource("/cache/ehcache.xml").toURI(),
+				provider.getDefaultClassLoader()
+		);
 
 		MutableConfiguration<Object, Object> configuration = new MutableConfiguration<Object, Object>();
 		configuration.setExpiryPolicyFactory(CreatedExpiryPolicy.factoryOf(new Duration(TimeUnit.SECONDS, 60)));
