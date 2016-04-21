@@ -1,11 +1,8 @@
 <config xmlns="http://www.ehcache.org/v3"
         xmlns:jc="http://www.ehcache.org/v3/jsr107">
 
-  <service>
-    <jc:defaults>
-      <jc:cache name="vets" template="simple"/>
-    </jc:defaults>
-  </service>
+  <cache alias="vets" uses-template="simple">
+  </cache>
 
   <cache-template name="simple">
     <expiry>

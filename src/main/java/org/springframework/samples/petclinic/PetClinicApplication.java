@@ -69,23 +69,6 @@ public class PetClinicApplication {
 		return new MarshallingView(marshaller);
 	}
 
-	@Bean
-	JCacheCacheManager cacheManager() throws Exception {
-		CachingProvider provider = Caching.getCachingProvider();
-		CacheManager cacheManager = provider.getCacheManager(
-				getClass().getResource("/cache/ehcache.xml").toURI(),
-				provider.getDefaultClassLoader()
-		);
-
-		MutableConfiguration<Object, Object> configuration = new MutableConfiguration<Object, Object>();
-		configuration.setExpiryPolicyFactory(CreatedExpiryPolicy.factoryOf(new Duration(TimeUnit.SECONDS, 60)));
-		configuration.setStoreByValue(false);
-
-		cacheManager.createCache("vets", configuration);
-
-		return new JCacheCacheManager(cacheManager);
-	}
-
 	public static void main(String[] args) throws Exception {
 		SpringApplication.run(PetClinicApplication.class, args);
 	}
