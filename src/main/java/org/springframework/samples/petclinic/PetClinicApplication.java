@@ -31,14 +31,13 @@ import org.springframework.samples.petclinic.web.VetsAtomView;
 import org.springframework.web.servlet.view.BeanNameViewResolver;
 import org.springframework.web.servlet.view.xml.MarshallingView;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Collection;
 
-import javax.cache.CacheManager;
-import javax.cache.Caching;
-import javax.cache.configuration.MutableConfiguration;
-import javax.cache.expiry.CreatedExpiryPolicy;
-import javax.cache.expiry.Duration;
-import javax.cache.spi.CachingProvider;
+import org.ehcache.CacheManager;
+
+import static org.ehcache.config.builders.CacheConfigurationBuilder.newCacheConfigurationBuilder;
+import static org.ehcache.config.builders.CacheManagerBuilder.newCacheManagerBuilder;
+import static org.ehcache.config.builders.ResourcePoolsBuilder.heap;
 
 /**
  * PetClinic Spring Boot Application.
@@ -67,6 +66,13 @@ public class PetClinicApplication {
 		Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
 		marshaller.setClassesToBeBound(Vets.class);
 		return new MarshallingView(marshaller);
+	}
+
+	@Bean
+	CacheManager ehcacheManager() {
+		return newCacheManagerBuilder()
+				.withCache("ownersSearch", newCacheConfigurationBuilder(String.class, Collection.class, heap(10)))
+				.build(true);
 	}
 
 	public static void main(String[] args) throws Exception {

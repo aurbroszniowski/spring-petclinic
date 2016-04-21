@@ -18,6 +18,10 @@ package org.springframework.samples.petclinic.service;
 
 import java.util.Collection;
 
+import org.ehcache.Cache;
+import org.ehcache.CacheManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataAccessException;
@@ -43,6 +47,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class ClinicServiceImpl implements ClinicService {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger("org.ehcache.Demo");
+
+
+	private final Cache<String, Collection> ownersSearchCache;
 	private PetRepository petRepository;
 	private VetRepository vetRepository;
 	private OwnerRepository ownerRepository;
@@ -50,11 +58,13 @@ public class ClinicServiceImpl implements ClinicService {
 
 	@Autowired
 	public ClinicServiceImpl(PetRepository petRepository, VetRepository vetRepository,
-			OwnerRepository ownerRepository, VisitRepository visitRepository) {
+													 OwnerRepository ownerRepository, VisitRepository visitRepository,
+													 CacheManager ehcacheManager) {
 		this.petRepository = petRepository;
 		this.vetRepository = vetRepository;
 		this.ownerRepository = ownerRepository;
 		this.visitRepository = visitRepository;
+		ownersSearchCache = ehcacheManager.getCache("ownersSearch", String.class, Collection.class);
 	}
 
 	@Override
@@ -73,7 +83,14 @@ public class ClinicServiceImpl implements ClinicService {
 	@Transactional(readOnly = true)
 	public Collection<Owner> findOwnerByLastName(String lastName)
 			throws DataAccessException {
-		return this.ownerRepository.findByLastName(lastName);
+		Collection<Owner> cachedOwners = ownersSearchCache.get(lastName);
+		if (cachedOwners != null) {
+			LOGGER.info("Returning cached result for {}", lastName);
+			return cachedOwners;
+		}
+		Collection<Owner> owners = this.ownerRepository.findByLastName(lastName);
+		ownersSearchCache.put(lastName, owners);
+		return owners;
 	}
 
 	@Override
