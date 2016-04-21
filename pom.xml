@@ -9,12 +9,9 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.2.0.BUILD-SNAPSHOT</version>
+		<version>1.3.3.RELEASE</version>
 	</parent>
 	<name>petclinic</name>
-	<properties>
-		<tomcat.version>8.0.12</tomcat.version>
-	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -42,8 +39,7 @@
 		</dependency>
 		<dependency>
 			<groupId>net.sf.ehcache</groupId>
-			<artifactId>ehcache-core</artifactId>
-			<version>2.6.9</version>
+			<artifactId>ehcache</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.rometools</groupId>
