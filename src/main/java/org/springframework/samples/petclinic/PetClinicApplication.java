@@ -16,6 +16,7 @@
 
 package org.springframework.samples.petclinic;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
@@ -27,7 +28,10 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 import org.springframework.samples.petclinic.model.Vets;
+import org.springframework.samples.petclinic.service.ClinicServiceImpl;
+import org.springframework.samples.petclinic.service.OwnerLoaderWriter;
 import org.springframework.samples.petclinic.web.VetsAtomView;
+import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.view.BeanNameViewResolver;
 import org.springframework.web.servlet.view.xml.MarshallingView;
 
@@ -68,12 +72,16 @@ public class PetClinicApplication {
 		return new MarshallingView(marshaller);
 	}
 
-	@Bean
-	CacheManager ehcacheManager() {
-		return newCacheManagerBuilder()
-				.withCache("ownersSearch", newCacheConfigurationBuilder(String.class, Collection.class, heap(10)))
-				.build(true);
-	}
+  @Autowired
+  OwnerLoaderWriter ownerLoaderWriter;
+
+  @Bean
+  CacheManager ehcacheManager() {
+    return newCacheManagerBuilder()
+        .withCache("ownersSearch", newCacheConfigurationBuilder(String.class, Collection.class, heap(10))
+            .withLoaderWriter(ownerLoaderWriter))
+        .build(true);
+  }
 
 	public static void main(String[] args) throws Exception {
 		SpringApplication.run(PetClinicApplication.class, args);

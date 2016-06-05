@@ -16,8 +16,6 @@
 
 package org.springframework.samples.petclinic.service;
 
-import java.util.Collection;
-
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.slf4j.Logger;
@@ -36,6 +34,8 @@ import org.springframework.samples.petclinic.repository.VetRepository;
 import org.springframework.samples.petclinic.repository.VisitRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
 
 /**
  * Mostly used as a facade for all Petclinic controllers Also a placeholder for @Transactional
@@ -79,19 +79,11 @@ public class ClinicServiceImpl implements ClinicService {
 		return this.ownerRepository.findById(id);
 	}
 
-	@Override
-	@Transactional(readOnly = true)
-	public Collection<Owner> findOwnerByLastName(String lastName)
-			throws DataAccessException {
-		Collection<Owner> cachedOwners = ownersSearchCache.get(lastName);
-		if (cachedOwners != null) {
-			LOGGER.info("Returning cached result for {}", lastName);
-			return cachedOwners;
-		}
-		Collection<Owner> owners = this.ownerRepository.findByLastName(lastName);
-		ownersSearchCache.put(lastName, owners);
-		return owners;
-	}
+  @Override
+  @Transactional(readOnly = true)
+  public Collection<Owner> findOwnerByLastName(String lastName) throws DataAccessException {
+    return ownersSearchCache.get(lastName);
+  }
 
 	@Override
 	public void saveOwner(Owner owner) throws DataAccessException {
