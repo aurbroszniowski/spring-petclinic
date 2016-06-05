@@ -16,6 +16,7 @@
 
 package org.springframework.samples.petclinic;
 
+import org.ehcache.config.builders.WriteBehindConfigurationBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -27,6 +28,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.oxm.jaxb.Jaxb2Marshaller;
+import org.springframework.samples.petclinic.model.Owner;
 import org.springframework.samples.petclinic.model.Vets;
 import org.springframework.samples.petclinic.service.ClinicServiceImpl;
 import org.springframework.samples.petclinic.service.OwnerLoaderWriter;
@@ -36,6 +38,8 @@ import org.springframework.web.servlet.view.BeanNameViewResolver;
 import org.springframework.web.servlet.view.xml.MarshallingView;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 import org.ehcache.CacheManager;
 
@@ -78,8 +82,11 @@ public class PetClinicApplication {
   @Bean
   CacheManager ehcacheManager() {
     return newCacheManagerBuilder()
-        .withCache("ownersSearch", newCacheConfigurationBuilder(String.class, Collection.class, heap(10))
-            .withLoaderWriter(ownerLoaderWriter))
+        .withCache("ownersSearch", newCacheConfigurationBuilder(String.class, Collection.class, heap(100))
+            .withLoaderWriter(ownerLoaderWriter).add(WriteBehindConfigurationBuilder
+                    .newUnBatchedWriteBehindConfiguration()
+                    .concurrencyLevel(1))
+            )
         .build(true);
   }
 

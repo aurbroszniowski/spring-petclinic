@@ -35,7 +35,10 @@ import org.springframework.samples.petclinic.repository.VisitRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Mostly used as a facade for all Petclinic controllers Also a placeholder for @Transactional
@@ -82,12 +85,14 @@ public class ClinicServiceImpl implements ClinicService {
   @Override
   @Transactional(readOnly = true)
   public Collection<Owner> findOwnerByLastName(String lastName) throws DataAccessException {
+    System.out.println("--> search Owner by name");
     return ownersSearchCache.get(lastName);
   }
 
 	@Override
 	public void saveOwner(Owner owner) throws DataAccessException {
-		this.ownerRepository.save(owner);
+    System.out.println("--> save Owner");
+    ownersSearchCache.put(owner.getLastName(), Arrays.asList(owner));
 	}
 
 	@Override

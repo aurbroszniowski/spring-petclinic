@@ -74,6 +74,7 @@ public class OwnerController {
 		else {
 			this.clinicService.saveOwner(owner);
 			status.setComplete();
+//			return "redirect:/owners/find.html" + owner.getId();
 			return "redirect:/owners/" + owner.getId();
 		}
 	}

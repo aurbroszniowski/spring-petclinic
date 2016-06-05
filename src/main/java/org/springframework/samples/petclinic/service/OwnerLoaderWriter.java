@@ -29,7 +29,7 @@ public class OwnerLoaderWriter implements CacheLoaderWriter<String, Collection> 
 
   @Override
   public Collection load(final String name) throws Exception {
-    System.out.println("--> it is not in the cache");
+    System.out.println("--> Owner is not in the cache, let's load it from the DB");
     Collection<Owner> owners = ownerRepository.findByLastName(name);
     return owners;
   }
@@ -41,13 +41,19 @@ public class OwnerLoaderWriter implements CacheLoaderWriter<String, Collection> 
 
   @Override
   public void write(final String string, final Collection collection) throws Exception {
-
+    for (Object owner : collection) {
+      this.ownerRepository.save((Owner)owner);
+    }
+    System.out.println("--> Writing to the DB is long. Will take 5 seconds");
+    Thread.currentThread().sleep(5000);
+    System.out.println("--> Writing to the DB done.");
   }
 
   @Override
   public void writeAll(final Iterable<? extends Map.Entry<? extends String, ? extends Collection>> iterable) throws BulkCacheWritingException, Exception {
 
   }
+
 
   @Override
   public void delete(final String string) throws Exception {
